@@ -96,67 +96,46 @@ yearArable, countryArable = getDataframes('./Data/ArableLand%.csv')
 yearAgri, countryAgri = getDataframes('./Data/AgriculturalLand%.csv')
 
 
-# GDP per CO2 Emission
+# Methane Emissions
 
-# find common years between the two dataframes and select the years divisble by 5
-selectedYears = selectYears(getCommonYears(yearCO2.columns, yearGDP.columns))
+# select years that are divisible by 5
+selectedYears = selectYears(yearMethane.columns)
 
-# get GDP per CO2 Emission table
-GDPPerCO2 = yearGDP[selectedYears] / yearCO2[selectedYears]
+# melt the dataframe so multiple columns of years turn into one
+df = yearMethane[selectedYears].reset_index().melt(
+    id_vars='Country Name', var_name='Year', value_name='Methane Emission')
 
-fig = plt.figure(figsize=(20, 20))
-
-# plot line for each country
-for country in chosenCountries:
-    ax = plt.plot(GDPPerCO2.loc[country], label=country)
-
+# plot a barchart with countries on the x-axis and methane emissions of y-axis
+plt.figure(figsize=(12, 12))
+sns.barplot(x='Country Name', y='Methane Emission', hue='Year', data=df)
 plt.legend(fontsize='xx-large')
-plt.title('Energy Efficiency', fontdict=font)
-plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
-plt.xlabel('Year', fontdict=font)
-plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
-plt.ylabel('GDP ($) / CO2 Emission (Ton)', fontdict=font)
-plt.savefig('EneryEfficiency', bbox_inches='tight')
-
-
-# Methane per Capita
-
-# find common years between the two dataframes and select the years divisble by 5
-selectedYears = selectYears(getCommonYears(yearMethane, yearPopu))
-
-# get Methane Emission per Person
-MethanePerCapita = yearMethane[selectedYears] / yearPopu[selectedYears]
-
-# melt the dataframe so that the years are under a single column
-df = MethanePerCapita.reset_index().melt(id_vars='Country Name', var_name='Year',
-                                         value_name='Methane per Person')
-
-# plot a barplot with countries on the x-axis and Methane Emission per Capita on y-axis
-plt.figure(figsize=(20, 20))
-sns.barplot(x='Country Name', y='Methane per Person', hue='Year', data=df)
-plt.legend(fontsize='xx-large')
-plt.title('Methane Emissions per Capita', fontdict=font)
-plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
-plt.xlabel('Year', fontdict=font)
-plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
-plt.ylabel('Methane (Tons) / Person', fontdict=font)
-plt.savefig('MethanePerCapita', bbox_inches='tight')
+font = dict(size=15)
+plt.title('Methane Emissions', fontdict=font)
+plt.xticks(fontsize=12)
+plt.xlabel('Country', fontdict=font)
+plt.yticks(fontsize=12)
+plt.ylabel('Methane Emissions (Tons)', fontdict=font)
+plt.savefig('MethaneEmissions', bbox_inches='tight')
 
 
 # Forest Area
+
+# select years that are divisible by 5
+selectedYears = selectYears(yearForest.columns)
 
 # melt the Forest dataframe so that multiple columns of years become one
 df = yearForest[selectedYears].reset_index().melt(
     id_vars='Country Name', var_name='Year', value_name='Forest Area')
 
 # plot a barplot
-plt.figure(figsize=(20, 20))
+plt.figure(figsize=(12, 12))
 sns.barplot(x='Country Name', y='Forest Area', hue='Year', data=df)
-plt.legend(fontsize='xx-large')
+plt.legend(fontsize='xx-large', loc='upper center')
+font = dict(size=20)
 plt.title('Forest Area', fontdict=font)
-plt.xticks(fontsize=20)
+plt.xticks(fontsize=12)
 plt.xlabel('Country', fontdict=font)
-plt.yticks(fontsize=20)
+plt.yticks(fontsize=12)
 plt.ylabel('Area (sq. km)', fontdict=font)
 plt.savefig('ForestArea', bbox_inches='tight')
 
@@ -174,15 +153,42 @@ df2 = yearGDP.reset_index().melt(id_vars='Country Name',
 # merge the two dataframes
 df = df1.merge(df2, on=['Country Name', 'Year'])
 
-plt.figure(figsize=(20, 20))
+# plot a scatterplot with power consumption on x-axis and GDP on y-axis
+plt.figure(figsize=(15, 15))
 sns.scatterplot(data=df, x='Power', y='GDP', hue='Country Name')
 plt.legend(fontsize='xx-large')
+font = dict(size=20)
 plt.title('Power Consumption Vs GDP', fontdict=font)
-plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
+plt.xticks(fontsize=15)
 plt.xlabel('Power Consumption (kWh per Capita)', fontdict=font)
-plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
+plt.yticks(fontsize=15, rotation=90)
 plt.ylabel('GDP ($ per Capita)', fontdict=font)
 plt.savefig('PowerConsumptionVsGDP', bbox_inches='tight')
+
+
+# GDP per CO2 Emission
+
+# find common years between the two dataframes and select the years divisble by 5
+selectedYears = selectYears(getCommonYears(yearCO2.columns, yearGDP.columns))
+
+# get GDP per CO2 Emission table
+GDPPerCO2 = yearGDP[selectedYears] / yearCO2[selectedYears]
+
+fig = plt.figure(figsize=(20, 20))
+
+# plot line for each country
+fig = plt.figure(figsize=(15, 15))
+for country in chosenCountries:
+    ax = plt.plot(GDPPerCO2.loc[country], label=country)
+
+font = dict(size=20)
+plt.legend(fontsize='xx-large')
+plt.title('Energy Efficiency', fontdict=font)
+plt.xticks(fontsize=20)
+plt.xlabel('Year', fontdict=font)
+plt.yticks(fontsize=20)
+plt.ylabel('GDP ($) / CO2 Emission (Ton)', fontdict=font)
+plt.savefig('EnergyEfficiency', bbox_inches='tight')
 
 
 # Correlation Maps
@@ -198,3 +204,7 @@ plt.savefig('USCorrMap', bbox_inches='tight')
 # Nigeria
 getCorrMap('Nigeria')
 plt.savefig('NigeriaCorrMap', bbox_inches='tight')
+
+# United Kingdom
+getCorrMap('United Kingdom')
+plt.savefig('UKCorrMap', bbox_inches='tight')
