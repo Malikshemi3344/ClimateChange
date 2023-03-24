@@ -103,3 +103,27 @@ plt.xlabel('Year', fontdict=font)
 plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
 plt.ylabel('Methane (Tons) / Person', fontdict=font)
 plt.savefig('MethanePerCapita')
+
+
+# Power Consumption Vs GDP
+
+selectedYears = selectYears(getCommonYears(yearPower, yearGDP))
+
+# melt the dataframes so that multiple columns of years turn into a single column
+df1 = yearPower.reset_index().melt(id_vars='Country Name',
+                                   var_name='Year',  value_name='Power')
+df2 = yearGDP.reset_index().melt(id_vars='Country Name',
+                                 var_name='Year',  value_name='GDP')
+
+# merge the two dataframes
+df = df1.merge(df2, on=['Country Name', 'Year'])
+
+plt.figure(figsize=(20, 20))
+sns.scatterplot(data=df, x='Power', y='GDP', hue='Country Name')
+plt.legend(fontsize='xx-large')
+plt.title('Power Consumption Vs GDP', fontdict=font)
+plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
+plt.xlabel('Power Consumption (kWh per Capita)', fontdict=font)
+plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
+plt.ylabel('GDP ($ per Capita)', fontdict=font)
+plt.savefig('PowerConsumptionVsGDP')
