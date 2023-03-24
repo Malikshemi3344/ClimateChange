@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import numpy as np
 
 # countries chosen for analysis
 chosenCountries = ['China', 'Canada', 'India', 'Pakistan',
@@ -46,6 +47,43 @@ def selectYears(yearsList, div=5):
     return [year for year in yearsList if not (int(year) % div)]
 
 
+def getCountryData(country):
+    '''
+    Takes country name as argument.\n
+    Returns data from all the metrics corresponding to that country.
+    '''
+
+    df = pd.DataFrame()
+    for _file in os.listdir('./Data/'):
+        temp = getDataframes(os.path.join('./Data/', _file))[0].loc[country]
+
+        # rename the column to the metric name
+        temp.name = _file.split('.')[0]
+
+        # join the column with the dataframe
+        df = pd.concat([df, temp], axis=1)
+
+    return df
+
+
+def getCorrMap(country):
+    plt.figure(figsize=(20, 18))
+
+    # correlation for given country
+    corr = getCountryData(country).corr()
+
+    # mask to get only the bottom triangle of the correlation map
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    corrMap = sns.heatmap(corr, mask=mask, cmap='rocket', annot=True,
+                          linewidths=5, annot_kws={'size': 25}, cbar=False)
+    corrMap.set_xticklabels(labels=corrMap.get_xticklabels(), fontdict={
+                            'size': 20}, rotation=60)
+    corrMap.set_yticklabels(labels=corrMap.get_yticklabels(), fontdict={
+                            'size': 20}, rotation=0)
+    plt.title(f'Correlation Map for {country}', fontdict=dict(size=30))
+
+
 # read all the files
 yearGDP, countryGDP = getDataframes('./Data/GDPPerCapita$.csv')
 yearCO2, countryCO2 = getDataframes('./Data/CO2EmissionsTonPerCapita.csv')
@@ -74,11 +112,11 @@ for country in chosenCountries:
 
 plt.legend(fontsize='xx-large')
 plt.title('Energy Efficiency', fontdict=font)
-plt.xticks(fontsize=20)
+plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
 plt.xlabel('Year', fontdict=font)
-plt.yticks(fontsize=20)
+plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
 plt.ylabel('GDP ($) / CO2 Emission (Ton)', fontdict=font)
-plt.savefig('EneryEfficiency')
+plt.savefig('EneryEfficiency', bbox_inches='tight')
 
 
 # Methane per Capita
@@ -93,7 +131,7 @@ MethanePerCapita = yearMethane[selectedYears] / yearPopu[selectedYears]
 df = MethanePerCapita.reset_index().melt(id_vars='Country Name', var_name='Year',
                                          value_name='Methane per Person')
 
-# plot a barplot with countries on the x-axis and
+# plot a barplot with countries on the x-axis and Methane Emission per Capita on y-axis
 plt.figure(figsize=(20, 20))
 sns.barplot(x='Country Name', y='Methane per Person', hue='Year', data=df)
 plt.legend(fontsize='xx-large')
@@ -102,7 +140,25 @@ plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
 plt.xlabel('Year', fontdict=font)
 plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
 plt.ylabel('Methane (Tons) / Person', fontdict=font)
-plt.savefig('MethanePerCapita')
+plt.savefig('MethanePerCapita', bbox_inches='tight')
+
+
+# Forest Area
+
+# melt the Forest dataframe so that multiple columns of years become one
+df = yearForest[selectedYears].reset_index().melt(
+    id_vars='Country Name', var_name='Year', value_name='Forest Area')
+
+# plot a barplot
+plt.figure(figsize=(20, 20))
+sns.barplot(x='Country Name', y='Forest Area', hue='Year', data=df)
+plt.legend(fontsize='xx-large')
+plt.title('Forest Area', fontdict=font)
+plt.xticks(fontsize=20)
+plt.xlabel('Country', fontdict=font)
+plt.yticks(fontsize=20)
+plt.ylabel('Area (sq. km)', fontdict=font)
+plt.savefig('ForestArea', bbox_inches='tight')
 
 
 # Power Consumption Vs GDP
@@ -126,4 +182,19 @@ plt.xticks(fontsize=20)  # increase font size of x-axis labels to 20
 plt.xlabel('Power Consumption (kWh per Capita)', fontdict=font)
 plt.yticks(fontsize=20)  # increase font size of y-axis labels to 20
 plt.ylabel('GDP ($ per Capita)', fontdict=font)
-plt.savefig('PowerConsumptionVsGDP')
+plt.savefig('PowerConsumptionVsGDP', bbox_inches='tight')
+
+
+# Correlation Maps
+
+# Pakistan
+getCorrMap('Pakistan')
+plt.savefig('PakistanCorrMap', bbox_inches='tight')
+
+# United States
+getCorrMap('United States')
+plt.savefig('USCorrMap', bbox_inches='tight')
+
+# Nigeria
+getCorrMap('Nigeria')
+plt.savefig('NigeriaCorrMap', bbox_inches='tight')
